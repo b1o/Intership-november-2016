@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+
+<script>
+
+    $.ajax({
+        url: "http://gis.sofiyskavoda.bg:6080/arcgis/rest/services/InfrastructureAlerts/mapserver/3/query?where=ACTIVESTATUS = 'Confirmed'&f=json&spatialRel=esriSpatialRelIntersects&outFields=*",
+        data: 'application/x-www-form-urlencoded',
+        dataType: 'json',
+        success: function(data) {
+            console.log(data.features)
+            for(let name of data.features) {
+                $("body").append(`<div class="region" id="${name.attributes.OBJECTID}">${name.attributes.LOCATION}<div class="desc">${name.attributes.DESCRIPTION}</div></div><hr>`);
+                let rings = name.geometry.rings;
+                let div = $('<div class="points"></div>')
+
+                for(let points of rings) {
+                    for(let coords of points) {
+                        let s = `${coords[0]}, ${coords[1]}`;
+                        div.append(`<p>${s}</p>`)
+                    }
+                }
+
+                $(`#${name.attributes.OBJECTID}`).append(div.css('display', 'none')).append("<button class='btn show'>Points</button>");
+
+
+            }
+        }
+    }).done(function () {
+        $(".btn").on("click", function () {
+            if($(this).hasClass("show")) {
+                $(this).parent().find(".points").show();
+                $(this).removeClass("show")
+            } else {
+                $(this).parent().find(".points").hide();
+                $(this).addClass("show");
+            }
+        })
+    });
+</script>
+</body>
+</html>
